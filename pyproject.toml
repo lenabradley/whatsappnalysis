@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "whatsentiment"
+name = "whatsappnalysis"
 version = "0.1.0"
 description = ""
 authors = ["lbartell <lenabartell@gmail.com>"]
