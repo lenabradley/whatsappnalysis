@@ -17,7 +17,7 @@ class ChatDataset:
     _re_two_digits = r"\d{1,2}"
     _re_date = f"{_re_two_digits}\/{_re_two_digits}\/{_re_two_digits}"
     _re_time = fr"{_re_two_digits}:{_re_two_digits} [AP]M"
-    _re_author = r"[\w ]+"
+    _re_author = r"[^:\n]+"
     _re_message_base = r"[\s\S]*?"
     _re_message_lookahead = fr"\n{_re_date}, {_re_time} - "
     _re_message = fr"{_re_message_base}(?={_re_message_lookahead})"
