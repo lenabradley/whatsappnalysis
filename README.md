@@ -11,8 +11,7 @@ Load and analyze WhatsApp chat history, e.g. as exported to a text file.
 
 ## Setup
 
-**Create virtual env.**
-From the project root, run: 
+Create virtual env. From the project root, run: 
 ```shell script
 poetry install
 ```
