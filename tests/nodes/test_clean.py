@@ -1,5 +1,4 @@
 from pytest_mock import MockFixture
-
 from whatsappnalysis.nodes.clean import run
 
 

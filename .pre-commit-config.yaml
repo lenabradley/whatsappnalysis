@@ -20,8 +20,8 @@ repos:
     rev: v0.782
     hooks:
       - id: mypy
-        args: [--config, mypy.ini]
-        files: ^snappiershot/
+        args: [--config, tests/mypy.ini]
+        files: ^whatsappnalysis/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0

@@ -1,12 +1,12 @@
 from __future__ import annotations
-from typing import Optional
-from pathlib import Path
+
 import re
+from pathlib import Path
+from typing import Optional
 
-from loguru import logger
-import pendulum
 import pandas as pd
-
+import pendulum
+from loguru import logger
 from whatsappnalysis.schema import Schema
 
 
@@ -15,7 +15,7 @@ class ChatDataset:
 
     # Regex patterns for loading WhatsApp chat message history text files
     _re_two_digits = r"\d{1,2}"
-    _re_date = f"{_re_two_digits}\/{_re_two_digits}\/{_re_two_digits}"
+    _re_date = fr"{_re_two_digits}\/{_re_two_digits}\/{_re_two_digits}"
     _re_time = fr"{_re_two_digits}:{_re_two_digits} [AP]M"
     _re_author = r"[^:\n]+"
     _re_message_base = r"[\s\S]*?"
@@ -45,7 +45,7 @@ class ChatDataset:
         logger.info(f"Validating dataset schema.")
 
         # Check that all required columns exist
-        required_columns = {col.name for col in self.schema.columns}
+        required_columns = {col.name for col in self.schema.columns}  # type: ignore
         existing_columns = set(data.columns)
         missing_columns = required_columns - existing_columns
         if missing_columns:
@@ -84,15 +84,19 @@ class ChatDataset:
         for timestamp_str, author_str, message_str in matches:
 
             # Parse datetime
-            timestamp = pendulum.from_format(timestamp_str, self._datetime_format_string)
+            timestamp = pendulum.from_format(
+                timestamp_str, self._datetime_format_string
+            )
 
             # Record data dict
-            chat_data_dicts.append({
-                "CHAT_NAME": chat_name,
-                "TIMESTAMP": timestamp,
-                "AUTHOR": author_str,
-                "MESSAGE": message_str
-            })
+            chat_data_dicts.append(
+                {
+                    "CHAT_NAME": chat_name,
+                    "TIMESTAMP": timestamp,
+                    "AUTHOR": author_str,
+                    "MESSAGE": message_str,
+                }
+            )
 
         logger.info(f"Parsed {len(chat_data_dicts)} messages.")
 
@@ -153,7 +157,5 @@ class ChatDataset:
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
         # Save
-        with filepath.open('wb') as file:
+        with filepath.open("wb") as file:
             self.data.to_parquet(file)
-
-
