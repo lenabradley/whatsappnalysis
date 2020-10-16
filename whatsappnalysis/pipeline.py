@@ -1,11 +1,11 @@
 from loguru import logger
 
-from src.config import PIPELINE_CONFIG as config
-from src.dataset import ChatDataset
-from src.nodes import load, clean, add_features
+from whatsappnalysis.config import PIPELINE_CONFIG, PipelineConfig
+from whatsappnalysis.dataset import ChatDataset
+from whatsappnalysis.nodes import load, clean, add_features
 
 
-def run():
+def run(config: PipelineConfig = PIPELINE_CONFIG):
 
     if config.run_loader:
         dataset = load.run(input_file=config.input_chat_text_path)
@@ -24,7 +24,6 @@ def run():
         dataset.save_to_parquet(config.features_chat_parquet_path)
     else:
         dataset = ChatDataset(schema=add_features.schema).load_from_parquet(config.features_chat_parquet_path)
-
 
     logger.info(f"Pipeline complete.")
 

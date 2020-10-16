@@ -4,8 +4,8 @@ import pandas as pd
 from loguru import logger
 import numpy as np
 
-from src.dataset import ChatDataset
-from src.schema import Schema
+from whatsappnalysis.dataset import ChatDataset
+from whatsappnalysis.schema import Schema
 
 
 class _Column(Enum):

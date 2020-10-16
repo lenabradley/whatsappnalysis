@@ -7,8 +7,8 @@ import numpy as np
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from src.dataset import ChatDataset
-from src.schema import Schema
+from whatsappnalysis.dataset import ChatDataset
+from whatsappnalysis.schema import Schema
 
 
 class _Column(Enum):
@@ -54,14 +54,7 @@ def run(input_dataset: ChatDataset) -> ChatDataset:
         cleaned chat dataset
     """
     logger.info(f"Running node: Add features")
-
-    output_data = _add_features(input_dataset.data)
-    output_dataset = ChatDataset(schema=schema).load_from_pandas(output_data)
-    return output_dataset
-
-
-def _add_features(data: pd.DataFrame) -> pd.DataFrame:
-    """ Add features to the dataset """
+    data = input_dataset.data
 
     # Overall Sentiment polarity scores
     logger.info(f"Adding sentiment polarity scores")
@@ -79,7 +72,8 @@ def _add_features(data: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"Adding word count")
     data = _add_word_count(data)
 
-    return data
+    output_dataset = ChatDataset(schema=schema).load_from_pandas(data)
+    return output_dataset
 
 
 def _add_overall_sentiment_polarity(data: pd.DataFrame) -> pd.DataFrame:

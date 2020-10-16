@@ -7,7 +7,7 @@ from loguru import logger
 import pendulum
 import pandas as pd
 
-from src.schema import Schema
+from whatsappnalysis.schema import Schema
 
 
 class ChatDataset:
@@ -20,8 +20,8 @@ class ChatDataset:
     _re_author = r"[^:\n]+"
     _re_message_base = r"[\s\S]*?"
     _re_message_lookahead = fr"\n{_re_date}, {_re_time} - "
-    _re_message = fr"{_re_message_base}(?={_re_message_lookahead})"
-    _re_chat_pattern = fr"\n({_re_date}, {_re_time}) - ({_re_author}): ({_re_message})"
+    _re_message = fr"{_re_message_base}(?={_re_message_lookahead}|$)"
+    _re_chat_pattern = fr"\n?({_re_date}, {_re_time}) - ({_re_author}): ({_re_message})"
     _datetime_format_string = "M/D/YY, h:m A"
 
     def __init__(self, schema: Schema):
@@ -78,7 +78,7 @@ class ChatDataset:
         # Find messages in text file
         chat_data_dicts = []
         matches = re.findall(self._re_chat_pattern, file_contents)
-        if matches is None:
+        if not matches:
             raise TypeError(f"No messages found in file {filepath}.")
 
         for timestamp_str, author_str, message_str in matches:

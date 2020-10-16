@@ -2,7 +2,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 ROOT_DIR = Path(__file__).parent.parent
-CHAT_NAME = "Fart Noises for Life"
+CHAT_NAME = "example_chat"
 
 
 @dataclass
@@ -15,10 +15,10 @@ class PipelineConfig:
     loaded_chat_parquet_path: Path = ROOT_DIR / "data" / "02_loaded" / (CHAT_NAME + ".parquet")
 
     run_cleaner: bool = True
-    cleaned_chat_parquet_path = ROOT_DIR / "data" / "03_cleaned" / (CHAT_NAME + ".parquet")
+    cleaned_chat_parquet_path: Path = ROOT_DIR / "data" / "03_cleaned" / (CHAT_NAME + ".parquet")
 
     run_features: bool = True
-    features_chat_parquet_path = ROOT_DIR / "data" / "04_featured" / (CHAT_NAME + ".parquet")
+    features_chat_parquet_path: Path = ROOT_DIR / "data" / "04_featured" / (CHAT_NAME + ".parquet")
 
 
 PIPELINE_CONFIG = PipelineConfig()
