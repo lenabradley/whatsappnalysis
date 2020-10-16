@@ -1,14 +1,13 @@
-from typing import List
 from enum import Enum, auto
+from typing import List
 
+import nltk
+import numpy as np
 import pandas as pd
 from loguru import logger
-import numpy as np
-import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
-from src.dataset import ChatDataset
-from src.schema import Schema
+from whatsappnalysis.dataset import ChatDataset
+from whatsappnalysis.schema import Schema
 
 
 class _Column(Enum):
@@ -32,12 +31,10 @@ _column_to_dtype = {
     _Column.AUTHOR.name: str,
     _Column.MESSAGE.name: str,
     _Column.HAS_MEDIA.name: bool,
-
     _Column.OVERALL_POLARITY.name: float,
     _Column.NEGATIVE_POLARITY.name: float,
     _Column.NEUTRAL_POLARITY.name: float,
     _Column.POSITIVE_POLARITY.name: float,
-
     _Column.WORD_COUNT.name: int,
 }
 
@@ -54,14 +51,7 @@ def run(input_dataset: ChatDataset) -> ChatDataset:
         cleaned chat dataset
     """
     logger.info(f"Running node: Add features")
-
-    output_data = _add_features(input_dataset.data)
-    output_dataset = ChatDataset(schema=schema).load_from_pandas(output_data)
-    return output_dataset
-
-
-def _add_features(data: pd.DataFrame) -> pd.DataFrame:
-    """ Add features to the dataset """
+    data = input_dataset.data
 
     # Overall Sentiment polarity scores
     logger.info(f"Adding sentiment polarity scores")
@@ -79,43 +69,40 @@ def _add_features(data: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"Adding word count")
     data = _add_word_count(data)
 
-    return data
+    output_dataset = ChatDataset(schema=schema).load_from_pandas(data)
+    return output_dataset
 
 
 def _add_overall_sentiment_polarity(data: pd.DataFrame) -> pd.DataFrame:
     """ Add columns measuring overall message polarity """
     sid = SentimentIntensityAnalyzer()
     polarity_data = data.apply(
-        _get_message_sentiment_scores,
-        result_type='expand',
-        axis='columns',
-        sid=sid,
+        _get_message_sentiment_scores, result_type="expand", axis="columns", sid=sid,
     )
     polarity_data.rename(
         {
             0: _Column.OVERALL_POLARITY.name,
             1: _Column.NEGATIVE_POLARITY.name,
             2: _Column.NEUTRAL_POLARITY.name,
-            3: _Column.POSITIVE_POLARITY.name
+            3: _Column.POSITIVE_POLARITY.name,
         },
-        axis='columns',
-        inplace=True
+        axis="columns",
+        inplace=True,
     )
-    data = data.join(
-        polarity_data,
-        how='outer'
-    )
+    data = data.join(polarity_data, how="outer")
     return data
 
 
-def _get_message_sentiment_scores(row_data: pd.Series, sid: SentimentIntensityAnalyzer):
+def _get_message_sentiment_scores(
+    row_data: pd.Series, sid: SentimentIntensityAnalyzer
+) -> List[float]:
     """ Analyze sentiment scores
 
     Args:
         sid: SentimentIntensityAnalyzer
         row_data: row of dataframe from which to get message text
 
-    Returns: List of floats of polrity scores for...
+    Returns: List of floats of polarity scores for...
         compound
         negative
         neutral
@@ -123,19 +110,17 @@ def _get_message_sentiment_scores(row_data: pd.Series, sid: SentimentIntensityAn
     """
     scores = sid.polarity_scores(row_data[_Column.MESSAGE.name])
     return [
-        scores['compound'],
-        scores['neg'],
-        scores['neu'],
-        scores['pos'],
+        scores["compound"],
+        scores["neg"],
+        scores["neu"],
+        scores["pos"],
     ]
 
 
 def _add_sentence_tokens(data: pd.DataFrame) -> pd.DataFrame:
     """Add column for sentence tokens"""
-    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-    data[_Column.TOKENS.name] = data[_Column.MESSAGE.name].apply(
-        tokenizer.tokenize
-    )
+    tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
+    data[_Column.TOKENS.name] = data[_Column.MESSAGE.name].apply(tokenizer.tokenize)
     return data
 
 
@@ -143,13 +128,14 @@ def _add_token_sentiment_polarities(data: pd.DataFrame) -> pd.DataFrame:
     """ Add columns measuring overall message polarity """
     sid = SentimentIntensityAnalyzer()
     data[_Column.TOKEN_POLARITIES.name] = data[_Column.TOKENS.name].apply(
-        _get_token_sentiment_scores,
-        sid=sid
+        _get_token_sentiment_scores, sid=sid
     )
     return data
 
 
-def _get_token_sentiment_scores(tokens: List[str], sid: SentimentIntensityAnalyzer):
+def _get_token_sentiment_scores(
+    tokens: List[str], sid: SentimentIntensityAnalyzer
+) -> List[float]:
     """ Analyze overall sentiment scores for each token in the message
 
     Args:
@@ -168,9 +154,7 @@ def _get_token_sentiment_scores(tokens: List[str], sid: SentimentIntensityAnalyz
 
 def _add_word_count(data: pd.DataFrame) -> pd.DataFrame:
     """Add message word count (number of words in message)"""
-    data[_Column.WORD_COUNT.name] = data[_Column.MESSAGE.name].apply(
-        _count_words
-    )
+    data[_Column.WORD_COUNT.name] = data[_Column.MESSAGE.name].apply(_count_words)
     return data
 
 

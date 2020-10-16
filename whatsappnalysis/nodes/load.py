@@ -1,11 +1,10 @@
-from pathlib import Path
 from enum import Enum, auto
+from pathlib import Path
 
-from loguru import logger
 import numpy as np
-
-from src.dataset import ChatDataset
-from src.schema import Schema
+from loguru import logger
+from whatsappnalysis.dataset import ChatDataset
+from whatsappnalysis.schema import Schema
 
 
 class _Column(Enum):
@@ -19,7 +18,7 @@ _column_to_dtype = {
     _Column.CHAT_NAME.name: str,
     _Column.TIMESTAMP.name: np.dtype("datetime64[ns]"),
     _Column.AUTHOR.name: str,
-    _Column.MESSAGE.name: str
+    _Column.MESSAGE.name: str,
 }
 
 
@@ -39,4 +38,3 @@ def run(input_file: Path) -> ChatDataset:
     dataset = ChatDataset(schema=schema)
     dataset.load_from_txt(input_file)
     return dataset
-
