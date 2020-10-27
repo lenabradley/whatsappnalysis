@@ -54,14 +54,14 @@ class ModelParameters:
         optimizer: str name of optimizer to use
         epochs: int, number of epochs for training
     """
-    sequence_length: int = 50
+    sequence_length: int = 30
     num_layers: int = 3
-    num_units: int = 700
+    num_units: int = 500
     dropout_fraction: float = 0.2
     activation: str = 'softmax'
     loss: str = 'categorical_crossentropy'
     optimizer: str = 'adam'
-    epochs: int = 30
+    epochs: int = 10
 
 
 def setup_input(input_dataset: ChatDataset) -> ModelInputData:
@@ -209,10 +209,11 @@ def _create_and_train_model(data: ModelInputData, parameters: ModelParameters) -
     model.compile(loss=parameters.loss, optimizer=parameters.optimizer)
 
     # Train model
-    logger.info("Training model.")
+    keep = int(0.5 * len(data.train))
+    logger.info("Training model on 50% of the data.")
     model.fit(
-        _normalize(data.train, data),
-        data.target,
+        _normalize(data.train[:keep], data),
+        data.target[:keep],
         epochs=parameters.epochs,
         batch_size=parameters.sequence_length
     )
