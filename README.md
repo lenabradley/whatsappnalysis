@@ -29,12 +29,12 @@ Put raw chat history text file in `/data/01_raw/`. Additional pipeline datasets
 will be saved in subsequent subfolders of `/data/`
 
 ## Update configuration
-Controlled via `/src/config.py`
+Controlled via `/whatsappnalysis/config.py`
 
 ## Run pipeline
 From within the virtual environment:
 ```
-(.venv) whatsappnalysis$ python src/pipeline.py
+(.venv) whatsappnalysis$ python whatsappnalysis/pipeline.py
 ```
 
 ## Run notebooks

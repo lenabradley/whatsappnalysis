@@ -34,6 +34,7 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
 
     if config.run_model_setup:
         model_input = model_lstm.setup_input(input_dataset=dataset)
+        config.model_input_path.parent.mkdir(parents=True, exist_ok=True)
         with config.model_input_path.open('wb') as file:
             pickle.dump(model_input, file)
     else:

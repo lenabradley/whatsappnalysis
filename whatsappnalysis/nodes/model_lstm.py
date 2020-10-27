@@ -54,14 +54,14 @@ class ModelParameters:
         optimizer: str name of optimizer to use
         epochs: int, number of epochs for training
     """
-    sequence_length: int = 30
-    num_layers: int = 2
-    num_units: int = 400
+    sequence_length: int = 50
+    num_layers: int = 3
+    num_units: int = 700
     dropout_fraction: float = 0.2
     activation: str = 'softmax'
     loss: str = 'categorical_crossentropy'
     optimizer: str = 'adam'
-    epochs: int = 1
+    epochs: int = 30
 
 
 def setup_input(input_dataset: ChatDataset) -> ModelInputData:
@@ -199,8 +199,9 @@ def _create_and_train_model(data: ModelInputData, parameters: ModelParameters) -
     # Add subsequent layers
     assert parameters.num_units >= 1, \
         f"Minumum of 1 layer required, but parameters specify {parameters.num_layers} layers."
-    for _ in range(parameters.num_layers - 1):
-        model.add(LSTM(parameters.num_units))
+    for index in range(parameters.num_layers - 1):
+        return_sequences = index < parameters.num_layers - 2 
+        model.add(LSTM(parameters.num_units, return_sequences=return_sequences))
         model.add(Dropout(parameters.dropout_fraction))
 
     # Add final layers

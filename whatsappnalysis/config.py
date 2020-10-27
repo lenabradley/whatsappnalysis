@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).parent.parent
-CHAT_NAME = "Fart Noises for Life"
+CHAT_NAME = "fart_noises_for_life"
 
 
 @dataclass
@@ -26,10 +26,10 @@ class PipelineConfig:
         CHAT_NAME + ".parquet"
     )
 
-    run_model_setup: bool = False
+    run_model_setup: bool = True
     model_input_path: Path = ROOT_DIR / "data" / "05_model" / (CHAT_NAME + "_model_input.pkl")
 
-    run_model_training: bool = False
+    run_model_training: bool = True
     trained_model_path: Path = ROOT_DIR / "data" / "05_model" / (CHAT_NAME + "_model.pkl")
 
     run_model_prediction: bool = True
