@@ -61,7 +61,7 @@ class ModelParameters:
     activation: str = 'softmax'
     loss: str = 'categorical_crossentropy'
     optimizer: str = 'adam'
-    epochs: int = 10
+    epochs: int = 5
 
 
 def setup_input(input_dataset: ChatDataset) -> ModelInputData:
