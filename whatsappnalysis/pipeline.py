@@ -6,6 +6,7 @@ from whatsappnalysis.dataset import ChatDataset
 from whatsappnalysis.nodes import add_features, clean, load, model_lstm
 
 
+@logger.catch
 def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
 
     if config.run_loader:
