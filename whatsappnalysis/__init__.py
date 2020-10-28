@@ -11,5 +11,5 @@ nltk.download("punkt")
 
 # Configure loguru
 log_file_name = f"log_{datetime.datetime.now().isoformat(sep='_')}.log"
-log_file_path = Path(__file__).parent / log_file_name
-logger.add(log_file_path.open('w'), rotation="500 MB")
+log_file_path = Path(__file__).parent.parent / log_file_name
+logger.add(log_file_path, rotation="500 MB")
