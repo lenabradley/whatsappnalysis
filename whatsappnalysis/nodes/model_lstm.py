@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Dict, Tuple
+from typing import Dict
 from dataclasses import dataclass
 
 import numpy as np
