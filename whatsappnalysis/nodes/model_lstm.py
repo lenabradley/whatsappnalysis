@@ -55,13 +55,13 @@ class ModelParameters:
         epochs: int, number of epochs for training
     """
     sequence_length: int = 50
-    num_layers: int = 2
-    num_units: int = 500
+    num_layers: int = 3
+    num_units: int = 700
     dropout_fraction: float = 0.2
     activation: str = 'softmax'
     loss: str = 'categorical_crossentropy'
     optimizer: str = 'adam'
-    epochs: int = 5
+    epochs: int = 10
 
 
 def setup_input(input_dataset: ChatDataset) -> ModelInputData:
