@@ -29,7 +29,10 @@ Put raw chat history text file in `/data/01_raw/`. Additional pipeline datasets
 will be saved in subsequent subfolders of `/data/`
 
 ## Update configuration
-Controlled via `/whatsappnalysis/config.py`
+
+Pipline configuration is set in `/whatsappnalysis/config_pipeline.py`
+
+LSTM model configuration is set in `/whatsappnalysis/config_model.py`
 
 ## Run pipeline
 From within the virtual environment:
