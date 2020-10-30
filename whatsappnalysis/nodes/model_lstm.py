@@ -13,6 +13,7 @@ from keras.callbacks import ModelCheckpoint
 
 from whatsappnalysis.dataset import ChatDataset
 from whatsappnalysis.schema import Schema
+from whatsappnalysis.config import ModelParameters, MODEL_PARAMETERS
 
 
 class _Column(Enum):
@@ -42,30 +43,6 @@ class ModelInputData:
     character_map: Dict[str, int]
 
 
-@dataclass
-class ModelParameters:
-    """Hold LSTM model parameters/settings
-
-    Args:
-        sequence_length: length of training sequence history
-        num_layers: number of LSTM layers, >=1
-        num_units: number of units per layer
-        dropout_fraction: fractional dropout rate for dropout layers
-        activation: string name of activation to use
-        loss: string name of loss to use
-        optimizer: str name of optimizer to use
-        epochs: int, number of epochs for training
-    """
-    sequence_length: int = 50
-    num_layers: int = 3
-    num_units: int = 700
-    dropout_fraction: float = 0.2
-    activation: str = 'softmax'
-    loss: str = 'categorical_crossentropy'
-    optimizer: str = 'adam'
-    epochs: int = 10
-
-
 def setup_input(input_dataset: ChatDataset) -> ModelInputData:
     """ Create model input
 
@@ -82,28 +59,25 @@ def setup_input(input_dataset: ChatDataset) -> ModelInputData:
     full_text = _get_full_text(data)
 
     logger.info("Creating model input")
-    parameters = ModelParameters()
-    model_input = _create_model_input(text=full_text, parameters=parameters)
+    model_input = _create_model_input(text=full_text, parameters=MODEL_PARAMETERS)
     return model_input
 
 
 def train(
         model_input: ModelInputData,
-        save_path: Path,
-        parameters: ModelParameters = ModelParameters(),
+        save_path: Path
 ) -> Sequential:
     """ Train LSTM model
 
     Args:
         model_input: input model data
         save_path: Path to save intermediary models to
-        parameters: model parameters
 
     Returns:
         trained model
     """
     logger.info(f"Running node: Training model")
-    model = _create_and_train_model(data=model_input, parameters=parameters, save_path=save_path)
+    model = _create_and_train_model(data=model_input, parameters=MODEL_PARAMETERS, save_path=save_path)
 
     return model
 
