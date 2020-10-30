@@ -1,13 +1,15 @@
 # Pipeline configuration
-input_chat_text_path: "../data/01_raw/fart_noises_for_life.txt"
+root_dir: "../"
+chat_name: "fart_noises_for_life"
+input_chat_text_dir: "data/01_raw"
 run_loader: False
-loaded_chat_parquet_path: "../data/02_loaded/fart_noises_for_life.parquet"
+loaded_chat_parquet_dir: "data/02_loaded/"
 run_cleaner: False
-cleaned_chat_parquet_path: "../data/03_cleaned/fart_noises_for_life.parquet"
+cleaned_chat_parquet_dir: "data/03_cleaned/"
 run_features: False
-features_chat_parquet_path: "../data/04_featured/fart_noises_for_life.parquet"
+features_chat_parquet_dir: "data/04_featured/"
 run_model_setup: True
-model_input_path: "../data/05_model/fart_noises_for_life_model_input.pkl"
+model_input_pickle_dir: "data/05_model/"
 run_model_training: True
-trained_model_path: "../data/05_model/fart_noises_for_life_model.pkl"
+trained_model_pickle_dir: "data/05_model/"
 run_model_prediction: True

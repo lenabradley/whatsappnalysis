@@ -35,21 +35,21 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
 
     if config.run_model_setup:
         model_input = model_lstm.setup_input(input_dataset=dataset)
-        config.model_input_path.parent.mkdir(parents=True, exist_ok=True)
-        with config.model_input_path.open('wb') as file:
+        config.model_input_pickle_path.parent.mkdir(parents=True, exist_ok=True)
+        with config.model_input_pickle_path.open('wb') as file:
             pickle.dump(model_input, file)
     else:
-        with config.model_input_path.open('rb') as file:
+        with config.model_input_pickle_path.open('rb') as file:
             model_input = pickle.load(file)
 
     if config.run_model_training:
         model = model_lstm.train(
             model_input=model_input,
-            save_path=config.trained_model_path
+            save_path=config.trained_model_pickle_path
         )
-        model.save(config.trained_model_path)
+        model.save(config.trained_model_pickle_path)
     else:
-        model = keras.models.load_model(config.trained_model_path)
+        model = keras.models.load_model(config.trained_model_pickle_path)
 
     if config.run_model_prediction:
         text = model_lstm.predict(

@@ -11,22 +11,25 @@ DEFAULT_MODEL_CONFIG_YAML = Path(__file__).parent / "config_model.yaml"
 class PipelineConfig:
     """Pipeline configuration setup"""
 
-    input_chat_text_path: Path
+    root_dir: Path
+    chat_name: str
+
+    input_chat_text_dir: Path
 
     run_loader: bool
-    loaded_chat_parquet_path: Path
+    loaded_chat_parquet_dir: Path
 
     run_cleaner: bool
-    cleaned_chat_parquet_path: Path
+    cleaned_chat_parquet_dir: Path
 
     run_features: bool
-    features_chat_parquet_path: Path
+    features_chat_parquet_dir: Path
 
     run_model_setup: bool
-    model_input_path: Path
+    model_input_pickle_dir: Path
 
     run_model_training: bool
-    trained_model_path: Path
+    trained_model_pickle_dir: Path
 
     run_model_prediction: bool
 
@@ -41,6 +44,30 @@ class PipelineConfig:
             for _, field in cls.__dataclass_fields__.items()  # type: ignore
         }
         return cls(**config_params)
+
+    @property
+    def input_chat_text_path(self):
+        return self.root_dir / self.input_chat_text_dir / (self.chat_name + ".txt")
+
+    @property
+    def loaded_chat_parquet_path(self):
+        return self.root_dir / self.loaded_chat_parquet_dir / (self.chat_name + ".parquet")
+
+    @property
+    def cleaned_chat_parquet_path(self):
+        return self.root_dir / self.cleaned_chat_parquet_dir / (self.chat_name + ".parquet")
+
+    @property
+    def features_chat_parquet_path(self):
+        return self.root_dir / self.features_chat_parquet_dir / (self.chat_name + ".parquet")
+
+    @property
+    def model_input_pickle_path(self):
+        return self.root_dir / self.model_input_pickle_dir / (self.chat_name + "_model_input.pkl")
+
+    @property
+    def trained_model_pickle_path(self):
+        return self.root_dir / self.trained_model_pickle_dir / (self.chat_name + "_model.pkl")
 
 
 @dataclass
