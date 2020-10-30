@@ -43,7 +43,10 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
             model_input = pickle.load(file)
 
     if config.run_model_training:
-        model = model_lstm.train(model_input=model_input)
+        model = model_lstm.train(
+            model_input=model_input,
+            save_path=config.trained_model_path
+        )
         model.save(config.trained_model_path)
     else:
         model = keras.models.load_model(config.trained_model_path)

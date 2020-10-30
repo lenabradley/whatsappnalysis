@@ -1,3 +1,4 @@
+from pathlib import Path
 from enum import Enum, auto
 from typing import Dict
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from loguru import logger
 from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM
+from keras.callbacks import ModelCheckpoint
 
 from whatsappnalysis.dataset import ChatDataset
 from whatsappnalysis.schema import Schema
@@ -85,17 +87,23 @@ def setup_input(input_dataset: ChatDataset) -> ModelInputData:
     return model_input
 
 
-def train(model_input: ModelInputData, parameters: ModelParameters = ModelParameters()) -> Sequential:
+def train(
+        model_input: ModelInputData,
+        save_path: Path,
+        parameters: ModelParameters = ModelParameters(),
+) -> Sequential:
     """ Train LSTM model
 
     Args:
         model_input: input model data
+        save_path: Path to save intermediary models to
+        parameters: model parameters
 
     Returns:
         trained model
     """
     logger.info(f"Running node: Training model")
-    model = _create_and_train_model(data=model_input, parameters=parameters)
+    model = _create_and_train_model(data=model_input, parameters=parameters, save_path=save_path)
 
     return model
 
@@ -174,17 +182,18 @@ def _create_model_input(text: str, parameters: ModelParameters) -> ModelInputDat
     return ModelInputData(train, target, char_map)
 
 
-def _create_and_train_model(data: ModelInputData, parameters: ModelParameters) -> Sequential:
+def _create_and_train_model(data: ModelInputData, parameters: ModelParameters, save_path: Path) -> Sequential:
     """
 
     Args:
         data: model data
         parameters: model parameters
+        save_path: path to save intermediary model training
 
     Returns:
         sequential model object
     """
-    logger.info("Creating model layers.")
+    logger.info(f"Creating model with parameters {parameters}.")
     # Setup model
     model = Sequential()
 
@@ -204,6 +213,17 @@ def _create_and_train_model(data: ModelInputData, parameters: ModelParameters) -
         model.add(LSTM(parameters.num_units, return_sequences=return_sequences))
         model.add(Dropout(parameters.dropout_fraction))
 
+    # Checkpoint for saving during training
+    logger.info(f"Intermediary models will be saved to {save_path}.")
+    checkpoint = ModelCheckpoint(
+        str(save_path),
+        monitor='loss',
+        verbose=1,
+        save_best_only=True,
+        mode='auto',
+        save_freq='epoch'
+    )
+
     # Add final layers
     model.add(Dense(data.target.shape[1], activation=parameters.activation))
     model.compile(loss=parameters.loss, optimizer=parameters.optimizer)
@@ -215,7 +235,8 @@ def _create_and_train_model(data: ModelInputData, parameters: ModelParameters) -
         _normalize(data.train[:keep], data),
         data.target[:keep],
         epochs=parameters.epochs,
-        batch_size=parameters.sequence_length
+        batch_size=parameters.sequence_length,
+        callbacks=[checkpoint]
     )
 
     return model
