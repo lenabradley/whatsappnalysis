@@ -7,7 +7,7 @@ from typing import Optional
 import pandas as pd
 import pendulum
 from loguru import logger
-from whatsappnalysis.schema import Schema
+from lib.schema import Schema
 
 
 class ChatDataset:

@@ -1,9 +1,68 @@
+
+from dataclasses import dataclass
+from pathlib import Path
 import pickle
 from loguru import logger
 import keras
 from whatsappnalysis.config import PIPELINE_CONFIG, PipelineConfig
 from whatsappnalysis.dataset import ChatDataset
 from whatsappnalysis.nodes import add_features, clean, load, model_lstm
+
+from lib.base_config import BaseConfig
+
+
+@dataclass
+class PipelineConfig(BaseConfig):
+    """Pipeline configuration setup"""
+
+    root_dir: Path
+    chat_name: str
+
+    input_chat_text_dir: Path
+
+    run_loader: bool
+    loaded_chat_parquet_dir: Path
+
+    run_cleaner: bool
+    cleaned_chat_parquet_dir: Path
+
+    run_features: bool
+    features_chat_parquet_dir: Path
+
+    run_model_setup: bool
+    model_input_pickle_dir: Path
+
+    run_model_training: bool
+    trained_model_pickle_dir: Path
+
+    run_model_prediction: bool
+
+    @property
+    def input_chat_text_path(self):
+        return self.root_dir / self.input_chat_text_dir / (self.chat_name + ".txt")
+
+    @property
+    def loaded_chat_parquet_path(self):
+        return self.root_dir / self.loaded_chat_parquet_dir / (self.chat_name + ".parquet")
+
+    @property
+    def cleaned_chat_parquet_path(self):
+        return self.root_dir / self.cleaned_chat_parquet_dir / (self.chat_name + ".parquet")
+
+    @property
+    def features_chat_parquet_path(self):
+        return self.root_dir / self.features_chat_parquet_dir / (self.chat_name + ".parquet")
+
+    @property
+    def model_input_pickle_path(self):
+        return self.root_dir / self.model_input_pickle_dir / (self.chat_name + "_model_input.pkl")
+
+    @property
+    def trained_model_pickle_path(self):
+        return self.root_dir / self.trained_model_pickle_dir / (self.chat_name + "_model.pkl")
+
+DEFAULT_PIPELINE_CONFIG_YAML = Path(__file__).parent / "config_pipeline.yaml"
+PIPELINE_CONFIG = PipelineConfig.from_yaml(DEFAULT_PIPELINE_CONFIG_YAML)
 
 
 @logger.catch
