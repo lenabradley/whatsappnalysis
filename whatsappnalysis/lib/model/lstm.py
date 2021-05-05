@@ -3,6 +3,8 @@ from enum import Enum, auto
 from typing import Dict, Optional
 from dataclasses import dataclass
 import json
+import warnings
+import string
 
 import numpy as np
 import pandas as pd
@@ -73,8 +75,6 @@ class ModelInputData:
 # ==== Model
 class LSTMModel(Model):
     """" LSTM Model for text generation """
-
-    predict_length: int = 100
     predict_seed: str = "Pokemon nobody likes evolves into pants nobody likes"
     model_filename = 'model.h5'
     char_map_filename = 'char_map.json'
@@ -92,7 +92,7 @@ class LSTMModel(Model):
         self.full_text: Optional[str] = None
         self.config = config
         self.save_directory = save_directory
-        self.char_map: Dict[str, int] = {}
+        self.char_map = self._create_char_map()
         self.checkpoint: Optional[ModelCheckpoint] = None
 
     def train(self, data: ChatDataset) -> Sequential:
@@ -125,7 +125,7 @@ class LSTMModel(Model):
         """
         logger.info("Running node: Generating text")
         generated_text = self._generate_text(
-            predict_length=length if length is not None else self.predict_length,
+            predict_length=length if length is not None else self.config.sequence_length,
             seed=seed if seed is not None else self.predict_seed
         )
         return generated_text
@@ -134,7 +134,13 @@ class LSTMModel(Model):
         """Save model and character map"""
         save_dir = path if path is not None else self.save_directory
 
-        self.model.save(str(save_dir / self.model_filename))
+        # Create output directory
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.model is not None:
+            self.model.save(str(save_dir / self.model_filename))
+        else:
+            warnings.warn(f"Model not yet created/trained, skipping save.")
 
         char_path = save_dir / self.char_map_filename
         with char_path.open('w') as file:
@@ -161,7 +167,6 @@ class LSTMModel(Model):
         self._get_full_text()
 
         logger.info("Creating model input")
-        self._create_char_map()
         self._create_model_input()
 
     def _get_full_text(self) -> None:
@@ -180,12 +185,8 @@ class LSTMModel(Model):
 
     def _create_char_map(self) -> None:
         """Create character / int mapping """
-        text = self.full_text
-        parameters = self.config
-
-        # Character map
-        characters = sorted(list(set(text)))
-        self.char_map = {char: n for n, char in enumerate(characters)}
+        # Character map of all pritnable characters
+        return {char: n for n, char in enumerate(string.printable)}
     
     def _create_model_input(self) -> None:
         """ Create model input arrays and character mapping """
@@ -265,7 +266,7 @@ class LSTMModel(Model):
         model.add(Dense(data.target.shape[1], activation=parameters.activation))
         model.compile(loss=parameters.loss, optimizer=parameters.optimizer)
     
-    def _train_model(self) -> None:
+    def _train_model(self) -> None:  # pragma: no cover
         """Train model"""
         data = self.model_input
         model = self.model
@@ -281,7 +282,7 @@ class LSTMModel(Model):
             callbacks=[self.checkpoint]
         )
 
-    def _normalize(self, array: np.ndarray) -> np.ndarray:
+    def _normalize(self, array: np.ndarray) -> np.ndarray:  # pragma: no cover
         """Normalize the given data array for model training/prediction"""
         return array / len(self.char_map)
 
@@ -293,6 +294,17 @@ class LSTMModel(Model):
         """
         character_map = self.char_map
         model = self.model
+
+        # Fix up the seed, make sure its the right length
+        if len(seed) > self.config.sequence_length:
+            # if seed is too long, just take the end of it
+            seed = seed[-self.config.sequence_length:]
+        if len(seed) < self.config.sequence_length:
+            # if seed is too short, pad it with spaces
+            seed = seed.rjust(self.config.sequence_length, " ")
+        assert len(seed) == self.config.sequence_length
+        logger.info(f"Text generation seed: `{seed}`")
+
 
         # Parameters
         num_to_char_map = {num: char for char, num in character_map.items()}

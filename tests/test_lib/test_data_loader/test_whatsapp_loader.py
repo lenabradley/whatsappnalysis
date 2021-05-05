@@ -5,18 +5,18 @@ import numpy as np
 import pandas as pd
 import pendulum
 import pytest
-from whatsappnalysis.dataset import ChatDataset
-from whatsappnalysis.schema import Schema
+from whatsappnalysis.lib.custom_types import ChatDataset, Schema
+from whatsappnalysis.lib.data_loader import WhatsappLoader
 
 
-class TestChatDataset:
+class TestWhatsappLoader:
     """ Tests for ChatDataset """
 
     test_chat_txt = (
         "2/5/20, 8:38 PM - Author 1: Hello world\n"
         "2/5/20, 8:39 PM - Author 1: I like balloons\n"
         "2/5/20, 8:39 PM - Author 2: I like balloons too!\n"
-        "2/5/20, 8:42 PM - Author 3: <Media omitted>\n"
+        "2/5/20, 8:42 PM - Author 3: foo\n"
         "2/5/20, 8:42 PM - Author 3: Balloons are terrible\n"
         "2/5/20, 8:45 PM - Author 2: False\n"
     )
@@ -51,12 +51,21 @@ class TestChatDataset:
                 0: "Hello world",
                 1: "I like balloons",
                 2: "I like balloons too!",
-                3: "<Media omitted>",
+                3: "foo",
                 4: "Balloons are terrible",
                 5: "False",
             },
+            "HAS_MEDIA": {
+                0: False,
+                1: False,
+                2: False,
+                3: False,
+                4: False,
+                5: False,
+            }            
         }
     )
+
 
     class Columns(Enum):
         TIMESTAMP = auto()
@@ -79,7 +88,7 @@ class TestChatDataset:
         dataset = ChatDataset(schema=self.schema)
 
         # Act
-        result = dataset.load_from_txt(raw_path)
+        result = WhatsappLoader().load_from_txt(raw_path)
 
         # Assert
         pd.testing.assert_frame_equal(result.data, expected)
@@ -91,49 +100,6 @@ class TestChatDataset:
         with raw_path.open("w") as file:
             file.write("")
 
-        dataset = ChatDataset(schema=self.schema)
-
         # Act / assert
         with pytest.raises(TypeError):
-            dataset.load_from_txt(raw_path)
-
-    def test_load_from_parquet(self, tmp_path: Path):
-        """ Test loading from parquet file"""
-        # Arrange
-        expected = self.test_chat_df.astype({"TIMESTAMP": np.dtype("datetime64[ns]")})
-        raw_path = tmp_path / "test_chat.parquet"
-        with raw_path.open("wb") as file:
-            expected.to_parquet(file)
-
-        dataset = ChatDataset(schema=self.schema)
-
-        # Act
-        result = dataset.load_from_parquet(raw_path)
-
-        # Assert
-        pd.testing.assert_frame_equal(result.data, expected)
-
-    def test_load_from_pandas(self):
-        """ Test loading from pandas DF"""
-        # Arrange
-        expected = self.test_chat_df.astype({"TIMESTAMP": np.dtype("datetime64[ns]")})
-
-        dataset = ChatDataset(schema=self.schema)
-
-        # Act
-        result = dataset.load_from_pandas(expected)
-
-        # Assert
-        pd.testing.assert_frame_equal(result.data, expected)
-
-    def test_bad_schema(self):
-        """ Test error with bad schema"""
-        # Arrange
-        data = self.test_chat_df
-        data = data.drop(columns="TIMESTAMP")
-
-        dataset = ChatDataset(schema=self.schema)
-
-        # Act / assert
-        with pytest.raises(ValueError):
-            dataset.load_from_pandas(data)
+            WhatsappLoader().load_from_txt(raw_path)

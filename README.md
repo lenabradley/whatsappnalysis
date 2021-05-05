@@ -50,6 +50,13 @@ To start up jupyter lab:
 This will open jupyter lab in a browser. From there you can
 open and run the notebooks
 
+## Run tests
+
+To run tests using pytest run
+```bash
+pytest tests
+```
+
 **Note:**
 Notebook outputs should be cleared before committing. To clear
 notebook outputs, do one of:

@@ -17,16 +17,16 @@ class PipelineConfig(Config):
     root_dir: Path
     chat_name: str
 
-    input_chat_text_dir: Path
+    input_chat_text_dir: str
 
     run_loader: bool
-    loaded_chat_parquet_dir: Path
+    loaded_chat_parquet_dir: str
 
     run_features: bool
-    features_chat_parquet_dir: Path
+    features_chat_parquet_dir: str
     
     run_model_training: bool
-    trained_model_pickle_dir: Path
+    trained_model_pickle_dir: str
 
     run_model_prediction: bool
 
@@ -77,8 +77,6 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
 
     # Predict
     if config.run_model_prediction:
-        model.predict()
-
         text = model.predict()
         logger.info(f"Generated text:\n``{text}``")
 
