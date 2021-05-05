@@ -17,16 +17,16 @@ class PipelineConfig(Config):
     root_dir: Path
     chat_name: str
 
-    input_chat_text_dir: str
+    input_chat_text_dir: Path
 
     run_loader: bool
-    loaded_chat_parquet_dir: str
+    loaded_chat_parquet_dir: Path
 
     run_features: bool
-    features_chat_parquet_dir: str
+    features_chat_parquet_dir: Path
     
     run_model_training: bool
-    trained_model_pickle_dir: str
+    trained_model_pickle_dir: Path
 
     run_model_prediction: bool
 
