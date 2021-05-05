@@ -2,14 +2,14 @@
 root_dir: "./"
 chat_name: "fart_noises_for_life"
 input_chat_text_dir: "data/01_raw"
+
 run_loader: False
 loaded_chat_parquet_dir: "data/02_loaded/"
-run_cleaner: False
-cleaned_chat_parquet_dir: "data/03_cleaned/"
+
 run_features: False
 features_chat_parquet_dir: "data/04_featured/"
-run_model_setup: True
-model_input_pickle_dir: "data/05_model/"
+
 run_model_training: True
 trained_model_pickle_dir: "data/05_model/"
+
 run_model_prediction: True

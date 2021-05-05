@@ -1,6 +1,6 @@
 from pathlib import Path
 from enum import Enum, auto
-from typing import Dict
+from typing import Dict, Optional
 from dataclasses import dataclass
 import json
 
@@ -12,14 +12,11 @@ from keras.models import Sequential, save_model, load_model
 from keras.layers import Dense, Dropout, LSTM
 from keras.callbacks import ModelCheckpoint
 
-from lib.dataset import ChatDataset
-from lib.schema import Schema
-from lib.base_config import BaseConfig
-from lib.model.base_model import BaseModel
+from whatsappnalysis.lib.custom_types import ChatDataset, Schema, Config, Model
 
 # ==== Model configuration
 @dataclass
-class LSTMModelConfig(BaseConfig):
+class LSTMModelConfig(Config):
     """Hold LSTM model parameters/settings
 
     Args:
@@ -40,6 +37,7 @@ class LSTMModelConfig(BaseConfig):
     loss: str
     optimizer: str
     epochs: int
+    fraction_to_train_on: float
 
 
 DEFAULT_MODEL_CONFIG_YAML = Path(__file__).parent / "lstm_config.yaml"
@@ -73,12 +71,11 @@ class ModelInputData:
 
 
 # ==== Model
-class LSTMModel(BaseModel):
+class LSTMModel(Model):
     """" LSTM Model for text generation """
 
     predict_length: int = 100
-    predict_seed: str = "hey evan"
-    fraction_to_train_on = 0.5
+    predict_seed: str = "Pokemon nobody likes evolves into pants nobody likes"
     model_filename = 'model.h5'
     char_map_filename = 'char_map.json'
 
@@ -96,8 +93,9 @@ class LSTMModel(BaseModel):
         self.config = config
         self.save_directory = save_directory
         self.char_map: Dict[str, int] = {}
+        self.checkpoint: Optional[ModelCheckpoint] = None
 
-    def train(data: ChatDataset) -> Sequential:
+    def train(self, data: ChatDataset) -> Sequential:
         """ Create and train LSTM model
 
         Args:
@@ -106,8 +104,10 @@ class LSTMModel(BaseModel):
         Returns:
             trained model
         """
+        self.input_dataset = data
+
         logger.info(f"Setting up LSTM model input")
-        self._setup_input(data)
+        self._setup_input()
 
         logger.info(f"Creating LSTM model")
         self._create_model()
@@ -117,22 +117,20 @@ class LSTMModel(BaseModel):
 
         return self.model
 
-    def predict(self) -> str:
+    def predict(self, length: Optional[int] = None, seed: Optional[str] = None) -> str:
         """ Generate text from the given model
 
         Returns:
             generated text
         """
         logger.info("Running node: Generating text")
-        generated_text = _generate_text(
-            data=self.model_input,
-            model=self.model,
-            predict_length=self.predict_lengthlength,
-            seed=self.predict_seed
+        generated_text = self._generate_text(
+            predict_length=length if length is not None else self.predict_length,
+            seed=seed if seed is not None else self.predict_seed
         )
         return generated_text
 
-    def save(self, path: Path = None) -> None:
+    def save(self, path: Optional[Path] = None) -> None:
         """Save model and character map"""
         save_dir = path if path is not None else self.save_directory
 
@@ -140,11 +138,11 @@ class LSTMModel(BaseModel):
 
         char_path = save_dir / self.char_map_filename
         with char_path.open('w') as file:
-            json.dump(file, self.char_map)
+            json.dump(self.char_map, file)
         
         logger.info(f"Saved model and char map to: {save_dir}")
 
-    def load(self) -> None:
+    def load(self, path: Optional[Path] = None) -> None:
         """Load model and char array from file"""
         save_dir = path if path is not None else self.save_directory
 
@@ -192,6 +190,8 @@ class LSTMModel(BaseModel):
     def _create_model_input(self) -> None:
         """ Create model input arrays and character mapping """
         char_map = self.char_map
+        text = self.full_text
+        parameters = self.config
 
         # Create train/target arrays
         train = []
@@ -226,6 +226,7 @@ class LSTMModel(BaseModel):
         """ Create model layers """
         parameters = self.config
         data = self.model_input
+        save_path = self.save_directory
         
         logger.info(f"Creating model with parameters {parameters}.")
 
@@ -251,8 +252,8 @@ class LSTMModel(BaseModel):
 
         # Checkpoint for saving during training
         logger.info(f"Intermediary models will be saved to {save_path}.")
-        checkpoint = ModelCheckpoint(
-            str(self.save_path),
+        self.checkpoint = ModelCheckpoint(
+            str(save_path),
             monitor='loss',
             verbose=1,
             save_best_only=True,
@@ -267,24 +268,24 @@ class LSTMModel(BaseModel):
     def _train_model(self) -> None:
         """Train model"""
         data = self.model_input
-        model = self.models
+        model = self.model
         parameters = self.config
 
-        keep = int(self.fraction_to_train_on * len(data.train))
-        logger.info(f"Training model on {int(fraction_to_train_on * 100)}% of the data.")
+        keep = int(self.config.fraction_to_train_on * len(data.train))
+        logger.info(f"Training model on {int(self.config.fraction_to_train_on * 100)}% of the data.")
         model.fit(
-            _normalize(data.train[:keep]),
+            self._normalize(data.train[:keep]),
             data.target[:keep],
             epochs=parameters.epochs,
             batch_size=parameters.sequence_length,
-            callbacks=[checkpoint]
+            callbacks=[self.checkpoint]
         )
 
     def _normalize(self, array: np.ndarray) -> np.ndarray:
         """Normalize the given data array for model training/prediction"""
         return array / len(self.char_map)
 
-    def _generate_text(self) -> str:
+    def _generate_text(self, predict_length: int, seed: str) -> str:
         """ Use the model to generate text
 
         Returns:
@@ -292,8 +293,6 @@ class LSTMModel(BaseModel):
         """
         character_map = self.char_map
         model = self.model
-        predict_length = self.predict_length
-        seed = self.predict_seed
 
         # Parameters
         num_to_char_map = {num: char for char, num in character_map.items()}
@@ -307,7 +306,7 @@ class LSTMModel(BaseModel):
 
             # Pick most likely next character (encoded as a number)
             x = np.reshape(seed_numbers, (1, len(seed_numbers), 1))
-            x = _normalize(x)
+            x = self._normalize(x)
             pred_index = np.argmax(model.predict(x, verbose=0))
 
             # Add predicted next character

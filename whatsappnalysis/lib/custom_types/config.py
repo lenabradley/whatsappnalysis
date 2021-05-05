@@ -1,9 +1,10 @@
 import abc
 from pathlib import Path
-
+from dataclasses import dataclass
+import yaml
 
 @dataclass
-class BaseConfig:
+class Config:
     """ Base configuration """
 
     @classmethod

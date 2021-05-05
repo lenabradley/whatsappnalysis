@@ -1,9 +1,10 @@
 # LSTM Model configuration
-sequence_length: 50
-num_layers: 3
-num_units: 700
-dropout_fraction: 0.2
+sequence_length: 10  # 50
+num_layers: 3  # 3
+num_units: 300 # 700
+dropout_fraction: 0.2 # 0.2
 activation: 'softmax'
 loss: 'categorical_crossentropy'
 optimizer: 'adam'
-epochs: 10
+epochs: 1 # 10
+fraction_to_train_on: 0.1
