@@ -79,7 +79,7 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
 
     # Predict
     if config.run_model_prediction:
-        text = model.predict(seed=config.seed)
+        text = model.predict(length=config.length, seed=config.seed)
         logger.info(f"Generated text:\n``{text}``")
 
     logger.info(f"Pipeline complete.")
