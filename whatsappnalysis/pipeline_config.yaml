@@ -13,4 +13,5 @@ run_model_training: True
 trained_model_pickle_dir: "data/05_model/"
 
 run_model_prediction: True
-seed: "there once was a human named sam"
+length: 200
+seed: "there once was a human named sam, who lived in 121 with a mouse"

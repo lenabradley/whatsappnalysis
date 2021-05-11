@@ -29,6 +29,7 @@ class PipelineConfig(Config):
     trained_model_pickle_dir: Path
 
     run_model_prediction: bool
+    length: int
     seed: str
 
     @property
