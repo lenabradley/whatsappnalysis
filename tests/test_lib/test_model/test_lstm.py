@@ -60,7 +60,7 @@ class TestLSTMModel:
         columns=Columns,
         columns_to_dtypes={Columns.TIMESTAMP.name: np.dtype("datetime64[ns]")},
     )
-    
+
     dataset = ChatDataset(schema).load_from_pandas(test_chat_df)
 
     fake_train_method = lambda _: None
@@ -93,12 +93,11 @@ class TestLSTMModel:
         assert model.model_filename in filenames
         assert model.char_map_filename in filenames
 
-
     def test_save_warning(self, tmp_path: Path):
         """Test save throws warning if model doesn't exist yet"""
         # Arrange
         save_dir = tmp_path / "test_save"
-        model = LSTMModel(save_dir) # don't train model
+        model = LSTMModel(save_dir)  # don't train model
 
         # Act / assert
         with pytest.warns(UserWarning):
@@ -121,7 +120,7 @@ class TestLSTMModel:
         assert new_model.model is not None
         assert new_model.char_map is not None
 
-    @pytest.mark.parametrize('seed', [None, string.printable, "a"])
+    @pytest.mark.parametrize("seed", [None, string.printable, "a"])
     def test_predict(self, seed: Optional[str], tmp_path: Path, mocker: MockerFixture):
         """Test predict"""
         # Arrange

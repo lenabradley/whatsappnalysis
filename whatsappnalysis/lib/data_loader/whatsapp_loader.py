@@ -23,7 +23,7 @@ _column_to_dtype = {
     _Column.TIMESTAMP.name: np.dtype("datetime64[ns]"),
     _Column.AUTHOR.name: str,
     _Column.MESSAGE.name: str,
-    _Column.HAS_MEDIA.name: bool
+    _Column.HAS_MEDIA.name: bool,
 }
 
 schema = Schema(_Column, _column_to_dtype)
@@ -31,7 +31,6 @@ schema = Schema(_Column, _column_to_dtype)
 
 class WhatsappLoader:
     """Class to load WhatsApp dataset"""
-
 
     # Regex patterns for loading WhatsApp chat message history text files
     _re_two_digits = r"\d{1,2}"
@@ -109,7 +108,7 @@ class WhatsappLoader:
         return dataset
 
     def _clean(self, data: pd.DataFrame) -> pd.DataFrame:
-        """ Clean the given dataset
+        """Clean the given dataset
 
         Args:
             data: input dataset
@@ -128,6 +127,8 @@ class WhatsappLoader:
         )
 
         # Remove special characters
-        data[_Column.MESSAGE.name] = data[_Column.MESSAGE.name].str.encode('ascii', 'ignore').str.decode('ascii')
+        data[_Column.MESSAGE.name] = (
+            data[_Column.MESSAGE.name].str.encode("ascii", "ignore").str.decode("ascii")
+        )
 
         return data

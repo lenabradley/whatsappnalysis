@@ -30,7 +30,7 @@ def test_run_pipeline(tmp_path: Path, mocker: MockerFixture):
         features_chat_parquet_dir=tmp_path / "featured",
         run_model_training=True,
         trained_model_pickle_dir=tmp_path / "trained",
-        run_model_prediction=True
+        run_model_prediction=True,
     )
 
     # - save chat to text file
@@ -40,8 +40,8 @@ def test_run_pipeline(tmp_path: Path, mocker: MockerFixture):
         file.write(test_chat_txt)
 
     # - mock training
-    MockLSTMModel = mocker.patch('whatsappnalysis.pipeline.LSTMModel')
-    
+    MockLSTMModel = mocker.patch("whatsappnalysis.pipeline.LSTMModel")
+
     # Act
     run(config=config)
 
@@ -67,18 +67,17 @@ def test_run_pipeline_off(tmp_path: Path, mocker: MockerFixture):
         features_chat_parquet_dir=tmp_path / "featured",
         run_model_training=False,
         trained_model_pickle_dir=tmp_path / "trained",
-        run_model_prediction=False
+        run_model_prediction=False,
     )
 
     # - mock training
-    MockLSTMModel = mocker.patch('whatsappnalysis.pipeline.LSTMModel')
-    MockLSTMModel = mocker.patch('whatsappnalysis.pipeline.ChatDataset')
-    
+    MockLSTMModel = mocker.patch("whatsappnalysis.pipeline.LSTMModel")
+    MockLSTMModel = mocker.patch("whatsappnalysis.pipeline.ChatDataset")
+
     # Act
     run(config=config)
 
     # Assert - check that all output files were created
-
 
 
 def test_pipeline_config():
@@ -96,7 +95,7 @@ def test_pipeline_config():
         features_chat_parquet_dir="featured",
         run_model_training=True,
         trained_model_pickle_dir="trained",
-        run_model_prediction=True
+        run_model_prediction=True,
     )
 
     # Assert

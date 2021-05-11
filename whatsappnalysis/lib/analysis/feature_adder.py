@@ -49,7 +49,7 @@ class FeatureAdder:
         pass
 
     def add_features(self, input_dataset: ChatDataset) -> ChatDataset:
-        """ Add features to dataset
+        """Add features to dataset
 
         Args:
             input_dataset: input chat dataset
@@ -83,7 +83,10 @@ class FeatureAdder:
         """ Add columns measuring overall message polarity """
         sid = SentimentIntensityAnalyzer()
         polarity_data = data.apply(
-            self._get_message_sentiment_scores, result_type="expand", axis="columns", sid=sid,
+            self._get_message_sentiment_scores,
+            result_type="expand",
+            axis="columns",
+            sid=sid,
         )
         polarity_data.rename(
             {
@@ -101,7 +104,7 @@ class FeatureAdder:
     def _get_message_sentiment_scores(
         self, row_data: pd.Series, sid: SentimentIntensityAnalyzer
     ) -> List[float]:
-        """ Analyze sentiment scores
+        """Analyze sentiment scores
 
         Args:
             sid: SentimentIntensityAnalyzer
@@ -139,7 +142,7 @@ class FeatureAdder:
     def _get_token_sentiment_scores(
         tokens: List[str], sid: SentimentIntensityAnalyzer
     ) -> List[float]:
-        """ Analyze overall sentiment scores for each token in the message
+        """Analyze overall sentiment scores for each token in the message
 
         Args:
             tokens: list of string tokens
@@ -156,7 +159,9 @@ class FeatureAdder:
 
     def _add_word_count(self, data: pd.DataFrame) -> pd.DataFrame:
         """Add message word count (number of words in message)"""
-        data[_Column.WORD_COUNT.name] = data[_Column.MESSAGE.name].apply(self._count_words)
+        data[_Column.WORD_COUNT.name] = data[_Column.MESSAGE.name].apply(
+            self._count_words
+        )
         return data
 
     def _count_words(self, message: str) -> int:

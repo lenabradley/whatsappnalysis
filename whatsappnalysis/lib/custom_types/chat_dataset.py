@@ -21,7 +21,7 @@ class ChatDataset:
         self.data: Optional[pd.DataFrame] = None
 
     def load_from_parquet(self, filepath: Path) -> ChatDataset:
-        """ Load dataset from parquet
+        """Load dataset from parquet
 
         Args:
             filepath: Path
@@ -39,7 +39,7 @@ class ChatDataset:
         return self
 
     def load_from_pandas(self, data: pd.DataFrame) -> ChatDataset:
-        """ Set data based on given dataframe
+        """Set data based on given dataframe
 
         Args:
             data: pandas dataframe with dataset
@@ -75,14 +75,14 @@ class ChatDataset:
 
         # Clean
         data = self._clean(data)
-        
+
         # store
         self.data = data
 
         return self.data
-        
+
     def _validate_schema(self, data: pd.DataFrame) -> pd.DataFrame:
-        """ Check that the dataset has the required columns and types
+        """Check that the dataset has the required columns and types
 
         Args:
             data: dataset to validate
@@ -103,7 +103,7 @@ class ChatDataset:
         data = data.astype(self.schema.columns_to_dtypes)
 
         return data
-    
+
     def _clean(self, data: pd.DataFrame) -> pd.DataFrame:
         """Clean dataset"""
         return data

@@ -12,7 +12,7 @@ from loguru import logger
 from keras.utils import np_utils
 from keras.models import Sequential, save_model, load_model
 from keras.layers import Dense, Dropout, LSTM
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, History
 
 from whatsappnalysis.lib.custom_types import ChatDataset, Schema, Config, Model
 
@@ -31,6 +31,7 @@ class LSTMModelConfig(Config):
         optimizer: str name of optimizer to use
         epochs: int, number of epochs for training
     """
+
     sequence_length: int
     num_layers: int
     num_units: int
@@ -68,6 +69,7 @@ class ModelInputData:
         train: (N x sequence_length) array of character integers for training
         target: (N x num_characters) one-hot-encoded array
     """
+
     train: np.ndarray
     target: np.ndarray
 
@@ -75,13 +77,16 @@ class ModelInputData:
 # ==== Model
 class LSTMModel(Model):
     """" LSTM Model for text generation """
-    predict_seed: str = "Pokemon nobody likes evolves into pants nobody likes"
-    model_filename = 'model.h5'
-    char_map_filename = 'char_map.json'
 
-    def __init__(self, save_directory: Path, config: LSTMModelConfig = DEFAULT_LSTM_CONFIG) -> None:
-        """ Initialize 
-        
+    predict_seed: str = "Pokemon nobody likes evolves into pants nobody likes"
+    model_filename = "model.h5"
+    char_map_filename = "char_map.json"
+
+    def __init__(
+        self, save_directory: Path, config: LSTMModelConfig = DEFAULT_LSTM_CONFIG
+    ) -> None:
+        """Initialize
+
         Args:
             path: Path to save/load model from
             config: model configuration parameters
@@ -94,9 +99,10 @@ class LSTMModel(Model):
         self.save_directory = save_directory
         self.char_map = self._create_char_map()
         self.checkpoint: Optional[ModelCheckpoint] = None
+        self.history: Optional[History] = None
 
     def train(self, data: ChatDataset) -> Sequential:
-        """ Create and train LSTM model
+        """Create and train LSTM model
 
         Args:
             data: input chat data
@@ -113,20 +119,22 @@ class LSTMModel(Model):
         self._create_model()
 
         logger.info(f"Training LSTM model")
-        self._train_model()
+        self.history = self._train_model()
 
         return self.model
 
     def predict(self, length: Optional[int] = None, seed: Optional[str] = None) -> str:
-        """ Generate text from the given model
+        """Generate text from the given model
 
         Returns:
             generated text
         """
         logger.info("Running node: Generating text")
         generated_text = self._generate_text(
-            predict_length=length if length is not None else self.config.sequence_length,
-            seed=seed if seed is not None else self.predict_seed
+            predict_length=length
+            if length is not None
+            else self.config.sequence_length,
+            seed=seed if seed is not None else self.predict_seed,
         )
         return generated_text
 
@@ -143,9 +151,9 @@ class LSTMModel(Model):
             warnings.warn(f"Model not yet created/trained, skipping save.")
 
         char_path = save_dir / self.char_map_filename
-        with char_path.open('w') as file:
+        with char_path.open("w") as file:
             json.dump(self.char_map, file)
-        
+
         logger.info(f"Saved model and char map to: {save_dir}")
 
     def load(self, path: Optional[Path] = None) -> None:
@@ -158,7 +166,7 @@ class LSTMModel(Model):
         with char_path.open() as file:
             char_map = json.load(file)
         self.char_map = char_map
-        
+
         logger.info(f"Loaded model and char map from: {save_dir}")
 
     def _setup_input(self) -> None:
@@ -187,7 +195,7 @@ class LSTMModel(Model):
         """Create character / int mapping """
         # Character map of all pritnable characters
         return {char: n for n, char in enumerate(string.printable)}
-    
+
     def _create_model_input(self) -> None:
         """ Create model input arrays and character mapping """
         char_map = self.char_map
@@ -198,12 +206,10 @@ class LSTMModel(Model):
         train = []
         target = []
         for index in range(len(text) - parameters.sequence_length):
-            seq = text[index:index + parameters.sequence_length]
+            seq = text[index : index + parameters.sequence_length]
             label = text[index + parameters.sequence_length]
 
-            train.append(
-                [char_map[char] for char in seq]
-            )
+            train.append([char_map[char] for char in seq])
             target.append(char_map[label])
 
         train = np.reshape(train, (len(train), parameters.sequence_length, 1))
@@ -211,24 +217,12 @@ class LSTMModel(Model):
 
         self.model_input = ModelInputData(train, target)
 
-    def _create_and_train_model(self) -> None:
-        """
-
-        Args:
-            data: model data
-            parameters: model parameters
-            save_path: path to save intermediary model training
-
-        Returns:
-            sequential model object
-        """
-
     def _create_model(self) -> None:
         """ Create model layers """
         parameters = self.config
         data = self.model_input
         save_path = self.save_directory
-        
+
         logger.info(f"Creating model with parameters {parameters}.")
 
         # Setup model
@@ -236,18 +230,21 @@ class LSTMModel(Model):
         model = self.model
 
         # Add initial layer
-        model.add(LSTM(
-            parameters.num_units,
-            input_shape=(data.train.shape[1], data.train.shape[2]),
-            return_sequences=True
-        ))
+        model.add(
+            LSTM(
+                parameters.num_units,
+                input_shape=(data.train.shape[1], data.train.shape[2]),
+                return_sequences=True,
+            )
+        )
         model.add(Dropout(parameters.dropout_fraction))
 
         # Add subsequent layers
-        assert parameters.num_units >= 1, \
-            f"Minumum of 1 layer required, but parameters specify {parameters.num_layers} layers."
+        assert (
+            parameters.num_units >= 1
+        ), f"Minumum of 1 layer required, but parameters specify {parameters.num_layers} layers."
         for index in range(parameters.num_layers - 1):
-            return_sequences = index < parameters.num_layers - 2 
+            return_sequences = index < parameters.num_layers - 2
             model.add(LSTM(parameters.num_units, return_sequences=return_sequences))
             model.add(Dropout(parameters.dropout_fraction))
 
@@ -255,39 +252,42 @@ class LSTMModel(Model):
         logger.info(f"Intermediary models will be saved to {save_path}.")
         self.checkpoint = ModelCheckpoint(
             str(save_path),
-            monitor='loss',
+            monitor="loss",
             verbose=1,
             save_best_only=True,
-            mode='auto',
-            save_freq='epoch'
+            mode="auto",
+            save_freq="epoch",
         )
 
         # Add final layers
         model.add(Dense(data.target.shape[1], activation=parameters.activation))
         model.compile(loss=parameters.loss, optimizer=parameters.optimizer)
-    
-    def _train_model(self) -> None:  # pragma: no cover
+
+    def _train_model(self) -> History:  # pragma: no cover
         """Train model"""
         data = self.model_input
         model = self.model
         parameters = self.config
 
         keep = int(self.config.fraction_to_train_on * len(data.train))
-        logger.info(f"Training model on {int(self.config.fraction_to_train_on * 100)}% of the data.")
-        model.fit(
+        logger.info(
+            f"Training model on {int(self.config.fraction_to_train_on * 100)}% of the data."
+        )
+        history = model.fit(
             self._normalize(data.train[:keep]),
             data.target[:keep],
             epochs=parameters.epochs,
             batch_size=parameters.sequence_length,
-            callbacks=[self.checkpoint]
+            callbacks=[self.checkpoint],
         )
+        return history
 
     def _normalize(self, array: np.ndarray) -> np.ndarray:  # pragma: no cover
         """Normalize the given data array for model training/prediction"""
         return array / len(self.char_map)
 
     def _generate_text(self, predict_length: int, seed: str) -> str:
-        """ Use the model to generate text
+        """Use the model to generate text
 
         Returns:
             str of generated text
@@ -298,13 +298,12 @@ class LSTMModel(Model):
         # Fix up the seed, make sure its the right length
         if len(seed) > self.config.sequence_length:
             # if seed is too long, just take the end of it
-            seed = seed[-self.config.sequence_length:]
+            seed = seed[-self.config.sequence_length :]
         if len(seed) < self.config.sequence_length:
             # if seed is too short, pad it with spaces
             seed = seed.rjust(self.config.sequence_length, " ")
         assert len(seed) == self.config.sequence_length
         logger.info(f"Text generation seed: `{seed}`")
-
 
         # Parameters
         num_to_char_map = {num: char for char, num in character_map.items()}
@@ -313,7 +312,7 @@ class LSTMModel(Model):
         seed_numbers = [character_map[char] for char in seed.lower()]
 
         # Generate characters
-        generated_sequence = ''.join([num_to_char_map[value] for value in seed_numbers])
+        generated_sequence = "".join([num_to_char_map[value] for value in seed_numbers])
         for _ in range(predict_length):
 
             # Pick most likely next character (encoded as a number)
@@ -328,5 +327,5 @@ class LSTMModel(Model):
             seed_numbers.pop(0)
             seed_numbers.append(pred_index)
 
-        generated_string = ''.join(generated_sequence)
+        generated_string = "".join(generated_sequence)
         return generated_string

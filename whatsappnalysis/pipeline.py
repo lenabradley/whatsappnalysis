@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from pathlib import Path
 import pickle
@@ -24,7 +23,7 @@ class PipelineConfig(Config):
 
     run_features: bool
     features_chat_parquet_dir: Path
-    
+
     run_model_training: bool
     trained_model_pickle_dir: Path
 
@@ -38,15 +37,26 @@ class PipelineConfig(Config):
 
     @property
     def loaded_chat_parquet_path(self):
-        return self.root_dir / self.loaded_chat_parquet_dir / (self.chat_name + ".parquet")
+        return (
+            self.root_dir / self.loaded_chat_parquet_dir / (self.chat_name + ".parquet")
+        )
 
     @property
     def features_chat_parquet_path(self):
-        return self.root_dir / self.features_chat_parquet_dir / (self.chat_name + ".parquet")
+        return (
+            self.root_dir
+            / self.features_chat_parquet_dir
+            / (self.chat_name + ".parquet")
+        )
 
     @property
     def trained_model_pickle_path(self):
-        return self.root_dir / self.trained_model_pickle_dir / (self.chat_name + "_model.pkl")
+        return (
+            self.root_dir
+            / self.trained_model_pickle_dir
+            / (self.chat_name + "_model.pkl")
+        )
+
 
 DEFAULT_PIPELINE_CONFIG_YAML = Path(__file__).parent / "pipeline_config.yaml"
 PIPELINE_CONFIG = PipelineConfig.from_yaml(DEFAULT_PIPELINE_CONFIG_YAML)
@@ -60,8 +70,10 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
         dataset = WhatsappLoader().load_from_txt(config.input_chat_text_path)
         dataset.save_to_parquet(config.loaded_chat_parquet_path)
     else:
-        dataset = ChatDataset(whatsapp_schema).load_from_parquet(config.loaded_chat_parquet_path)
-    
+        dataset = ChatDataset(whatsapp_schema).load_from_parquet(
+            config.loaded_chat_parquet_path
+        )
+
     # Add features
     if config.run_features:
         dataset = FeatureAdder().add_features(dataset)
@@ -83,6 +95,7 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
         logger.info(f"Generated text:\n``{text}``")
 
     logger.info(f"Pipeline complete.")
+
 
 if __name__ == "__main__":
     run()

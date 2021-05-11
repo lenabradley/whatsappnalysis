@@ -3,8 +3,8 @@ import typing as t
 import pathlib
 from .chat_dataset import ChatDataset
 
+
 class Model(abc.ABC):
-    
     @abc.abstractmethod
     def train(self, dataset: ChatDataset) -> t.Any:
         pass
@@ -20,5 +20,3 @@ class Model(abc.ABC):
     @abc.abstractmethod
     def load(self, path: pathlib.Path) -> None:
         pass
-
-        

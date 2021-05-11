@@ -9,9 +9,9 @@ loaded_chat_parquet_dir: "data/02_loaded/"
 run_features: False
 features_chat_parquet_dir: "data/04_featured/"
 
-run_model_training: True
-trained_model_pickle_dir: "data/05_model/"
+run_model_training: False
+trained_model_pickle_dir: "data/05_model/05_model"
 
 run_model_prediction: True
 length: 200
-seed: "there once was a human named sam, who lived in 121 with a mouse"
+seed: "thread needs more haikus to feed the generator never work again"
