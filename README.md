@@ -37,7 +37,7 @@ LSTM model configuration is set in `/whatsappnalysis/config_model.py`
 ## Run pipeline
 From within the virtual environment:
 ```
-(.venv) whatsappnalysis$ python whatsappnalysis/pipeline.py
+(.venv) whatsappnalysis$ poetry run -m python whatsappnalysis.pipeline
 ```
 
 ## Run notebooks
@@ -50,15 +50,68 @@ To start up jupyter lab:
 This will open jupyter lab in a browser. From there you can
 open and run the notebooks
 
-## Run tests
-
-To run tests using pytest run
-```bash
-pytest tests
-```
-
 **Note:**
 Notebook outputs should be cleared before committing. To clear
 notebook outputs, do one of:
 * From jupyter lab: `Kernel` > `Restart kernel and clear all outputs`
 * Or from a terminal: `jupyter nbconvert --clear-output --inplace my_notebook.ipynb`
+
+## Run tests
+
+To run tests using pytest run
+```bash
+pytest tests
+
+
+## EC2 setup
+
+To setup environment on new Amazon Linux 2 machine...
+
+**Install libraries**:
+```bash
+sudo yum install -y \
+    gcc \
+    libbz2-dev \
+    libsqlite3-dev \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    tk-dev \
+    liblzma-dev \
+    sqlite-devel \
+    libffi-devel \
+    openssl-devel \
+    zlib-devel \
+    bzip2-devel \
+    xz-devel \
+    git \
+    tmux
+```
+libcuda.s01
+
+**Install pyenv** Instructions: https://github.com/pyenv/pyenv#basic-github-checkout
+
+**Install python 3.7**
+To install using pyenv
+```bash
+pyenv install 3.7.7
+```
+Then, from the repo root directory, set the python version:
+```
+pyenv local 3.7.7
+```
+
+**Setup virtual environment**
+Install poetry
+```bash
+pip install poetry
+```
+Create venv and install python dependencies:
+```bash
+poetry install
+```
+Activate venv:
+```bash
+source .venv/bin/activate
+```
+

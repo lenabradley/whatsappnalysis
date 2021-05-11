@@ -29,6 +29,7 @@ class PipelineConfig(Config):
     trained_model_pickle_dir: Path
 
     run_model_prediction: bool
+    seed: str
 
     @property
     def input_chat_text_path(self):
@@ -77,7 +78,7 @@ def run(config: PipelineConfig = PIPELINE_CONFIG) -> None:
 
     # Predict
     if config.run_model_prediction:
-        text = model.predict()
+        text = model.predict(seed=config.seed)
         logger.info(f"Generated text:\n``{text}``")
 
     logger.info(f"Pipeline complete.")
