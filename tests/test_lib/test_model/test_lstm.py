@@ -8,11 +8,29 @@ from pytest_mock import MockerFixture
 import pandas as pd
 import pendulum
 import numpy as np
-from whatsappnalysis.lib.model.lstm import LSTMModel, ChatDataset, Sequential, Schema
+from whatsappnalysis.lib.model.lstm import (
+    LSTMModel,
+    ChatDataset,
+    Sequential,
+    Schema,
+    LSTMModelConfig,
+)
 
 
 class TestLSTMModel:
     """Test LSTMModel"""
+
+    config = LSTMModelConfig(
+        sequence_length=5,
+        num_layers=2,
+        num_units=100,
+        dropout_fraction=0.2,
+        activation="softmax",
+        loss="categorical_crossentropy",
+        optimizer="adam",
+        epochs=1,
+        fraction_to_train_on=1.0,
+    )
 
     test_chat_df = pd.DataFrame.from_dict(
         {
@@ -68,7 +86,7 @@ class TestLSTMModel:
     def test_train(self, tmp_path: Path, mocker: MockerFixture):
         """Test train"""
         # Arrange
-        model = LSTMModel(tmp_path / "test_train")
+        model = LSTMModel(tmp_path / "test_train", config=self.config)
         mocker.patch.object(model, "_train_model", self.fake_train_method)
 
         # Act
@@ -81,7 +99,7 @@ class TestLSTMModel:
         """Test save"""
         # Arrange
         save_dir = tmp_path / "test_save"
-        model = LSTMModel(save_dir)
+        model = LSTMModel(save_dir, config=self.config)
         mocker.patch.object(model, "_train_model", self.fake_train_method)
         model.train(self.dataset)
 
@@ -97,7 +115,7 @@ class TestLSTMModel:
         """Test save throws warning if model doesn't exist yet"""
         # Arrange
         save_dir = tmp_path / "test_save"
-        model = LSTMModel(save_dir)  # don't train model
+        model = LSTMModel(save_dir, config=self.config)  # don't train model
 
         # Act / assert
         with pytest.warns(UserWarning):
@@ -107,7 +125,7 @@ class TestLSTMModel:
         """Test load"""
         # Arrange
         save_dir = tmp_path / "test_load"
-        model = LSTMModel(save_dir)
+        model = LSTMModel(save_dir, config=self.config)
         mocker.patch.object(model, "_train_model", self.fake_train_method)
         model.train(self.dataset)
         model.save()
@@ -125,7 +143,7 @@ class TestLSTMModel:
         """Test predict"""
         # Arrange
         save_dir = tmp_path / "test_pred"
-        model = LSTMModel(save_dir)
+        model = LSTMModel(save_dir, config=self.config)
         mocker.patch.object(model, "_train_model", self.fake_train_method)
         model.train(self.dataset)
 
